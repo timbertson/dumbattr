@@ -7,8 +7,6 @@ logger = logging.getLogger(__name__)
 
 METADATA_FILENAME = '.xattr.json'
 
-# def user_attribute(k): return "user." + key
-
 _sentinel = object
 
 def fix(dirpath):

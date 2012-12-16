@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" xmlns:compile="http://zero-install.sourceforge.net/2006/namespaces/0compile" xmlns:release="http://zero-install.sourceforge.net/2007/namespaces/0release" uri="http://gfxmonk.net/dist/0install/python-dumbattr.xml">
+	<name>python-dumbattr</name>
+	<summary>resiliant xattr storage</summary>
+	<publish xmlns="http://gfxmonk.net/dist/0install" mode=""/>
+	<description>
+dumbattr
+--------
+
+Dumbattr is a layer on top of `xattr`. As well as saving and loading xattr-based metadata, it stores the same information in a directory-level JSON file. If for some reason you lose your xattrs (via a backup roundtrip, or a copy program that doesn't respect xattrs), the next time you use `dumbattr` to load a file's metadata (for any file in that directory), it'll repopulate all missing `xattr` data as long as you've copied whole directory.
+
+Dumbattr only supports user-level data (i.e xattrs that start with `"user."`). You do not need to specify this in your attribute names, it is implied. That is:
+
+	&gt;&gt;&gt; import dumbattr
+	&gt;&gt;&gt; dumbattr.set("/path/to/file", "attr_name", "attr_value")
+
+Will set the underlying `xattr` key `"user.attr_name"` to `"attr_value"`.
+
+Caveats
+-------
+
+ - Persisted metadata takes precedence. If you have set the *same* key on a file using both plain xattr and `dumbattr`, `dumbattr` attributes will take priority when you read the file (and will overwrite the plain xattr accordingly. This only applies to conflicting keys for the one file - i.e it won't touch plain xattrs under a different key for that same file.
+
+ - Obviously, the restore from lost xattrs only works on a per-directory level. If you move just one file and not its containing directory and simultaneously strip its xattr data, then dumbattr can't help you there.
+
+	</description>
+	<homepage>https://github.com/gfxmonk/dumbattr</homepage>
+	<feed-for interface="http://gfxmonk.net/dist/0install/python-dumbattr.xml"/>
+	<rich-description xmlns="http://gfxmonk.net/dist/0install">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+			<h2 id="dumbattr">dumbattr</h2>
+			<p>Dumbattr is a layer on top of <code>xattr</code>. As well as saving and loading xattr-based metadata, it stores the same information in a directory-level JSON file. If for some reason you lose your xattrs (via a backup roundtrip, or a copy program that doesn't respect xattrs), the next time you use <code>dumbattr</code> to load a file's metadata (for any file in that directory), it'll repopulate all missing <code>xattr</code> data as long as you've copied whole directory.</p>
+			<p>Dumbattr only supports user-level data (i.e xattrs that start with <code>"user."</code>). You do not need to specify this in your attribute names, it is implied. That is:</p>
+			<pre>
+				<code>&gt;&gt;&gt; import dumbattr
+&gt;&gt;&gt; dumbattr.set("/path/to/file", "attr_name", "attr_value")</code>
+			</pre>
+			<p>Will set the underlying <code>xattr</code> key <code>"user.attr_name"</code> to <code>"attr_value"</code>.</p>
+			<h2 id="caveats">Caveats</h2>
+			<ul>
+				<li>
+					<p>Persisted metadata takes precedence. If you have set the <em>same</em> key on a file using both plain xattr and <code>dumbattr</code>, <code>dumbattr</code> attributes will take priority when you read the file (and will overwrite the plain xattr accordingly. This only applies to conflicting keys for the one file - i.e it won't touch plain xattrs under a different key for that same file.</p>
+				</li>
+				<li>
+					<p>Obviously, the restore from lost xattrs only works on a per-directory level. If you move just one file and not its containing directory and simultaneously strip its xattr data, then dumbattr can't help you there.</p>
+				</li>
+			</ul>
+		</div>
+	</rich-description>
+	<group>
+		<requires interface="http://repo.roscidus.com/python/python"/>
+		<requires interface="http://gfxmonk.net/dist/0install/python-xattr.xml"/>
+		<environment insert="" mode="prepend" name="PYTHONPATH"/>
+		<implementation id="sha1new=a06b1409fc88b154466b35d6bb74d6f427aadba0" released="2012-12-16" version="0.1">
+			<manifest-digest sha256="17531b7cc9cc1758d080954566dd7873afad72a42b09048534d5cc420aac240c"/>
+			<archive href="http://gfxmonk.net/dist/0install/python-dumbattr/python-dumbattr-0.1.tgz" size="5004"/>
+		</implementation>
+	</group>
+</interface>
