@@ -2,6 +2,8 @@ import os
 import xattr
 import simplejson
 import logging
+import __builtin__
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -9,15 +11,15 @@ METADATA_FILENAME = '.xattr.json'
 
 _sentinel = object
 
+Set = __builtin__.set
+
 def fix(dirpath):
 	DirectoryMetadata(dirpath)
 
 def load(path):
 	return FileMetadata.from_path(path)
 
-# `xattr`-like implementations.
-# Note that `set` is not used because it conflicts with the builtin `set`
-def setattr(path, name, value):
+def set(path, name, value):
 	load(path)[name] = value
 
 def get(path, name):
@@ -110,7 +112,7 @@ class DirectoryMetadata(object):
 	
 	def _fix(self):
 		logger.debug("Fixing records for %s", self)
-		files = set(os.listdir(self.dirpath))
+		files = Set(os.listdir(self.dirpath))
 		attrs = {}
 		for filename in files:
 			path = os.path.join(self.dirpath, filename)
@@ -134,7 +136,7 @@ class DirectoryMetadata(object):
 					xattr.set(path, key, val, namespace=xattr.NS_USER)
 			self._update_saved_attrs(filename, dest=attrs)
 
-		removed_files = set(self._saved_attrs.keys()).difference(set(attrs.keys()))
+		removed_files = Set(self._saved_attrs.keys()).difference(Set(attrs.keys()))
 		for filename in removed_files:
 			logger.info("Dropping metadata for missing file %s: %r", os.path.join(self.dirpath, filename), self._saved_attrs[filename])
 

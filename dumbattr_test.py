@@ -42,19 +42,19 @@ class DumbattrTests(unittest.TestCase):
 		return d
 
 	def test_adding_attr_to_previously_untouched_dir(self):
-		dumbattr.setattr(self.file1, "test1", "value1")
+		dumbattr.set(self.file1, "test1", "value1")
 		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1"}})
 
 	def test_adding_multiple_attrs(self):
-		dumbattr.setattr(self.file1, "test1", "value1")
-		dumbattr.setattr(self.file1, "test2", "value2")
+		dumbattr.set(self.file1, "test1", "value1")
+		dumbattr.set(self.file1, "test2", "value2")
 		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1", "test2": "value2"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1", "test2": "value2"}})
 
 	def test_adding_attr_to_second_file(self):
-		dumbattr.setattr(self.file1, "test1", "value1")
-		dumbattr.setattr(self.file2, "test2", "value2")
+		dumbattr.set(self.file1, "test1", "value1")
+		dumbattr.set(self.file2, "test2", "value2")
 		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1"})
 		self.assertEqual(self.all_xattrs(self.file2), {"test2":"value2"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1"}, "file2": {"test2": "value2"}})
@@ -79,7 +79,7 @@ class DumbattrTests(unittest.TestCase):
 		})
 
 	def test_xattrs_overriden_by_serialized_attrs(self):
-		dumbattr.setattr(self.file1, "test1", "1")
+		dumbattr.set(self.file1, "test1", "1")
 		xattr.set(self.file1, "test1", "2", namespace=xattr.NS_USER)
 
 		self.assertEqual(self.serialized_metadata(), {'file1': {'test1':'1'}})
@@ -88,7 +88,7 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(self.all_xattrs(self.file1), {'test1': '1'})
 
 	def test_xattrs_with_no_serialized_value_are_kept(self):
-		dumbattr.setattr(self.file1, "test1", "1")
+		dumbattr.set(self.file1, "test1", "1")
 		xattr.set(self.file1, "test2", "2", namespace=xattr.NS_USER)
 
 		self.assertEqual(self.serialized_metadata(), {'file1': {'test1':'1'}})
@@ -96,7 +96,7 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(self.serialized_metadata(), {'file1': {'test1': '1', 'test2':'2'}})
 
 	def test_metadata_file_is_removed_when_no_files_have_attrs(self):
-		dumbattr.setattr(self.file1, "test1", "1")
+		dumbattr.set(self.file1, "test1", "1")
 
 		self.assertEqual(self.serialized_metadata(), {'file1': {'test1':'1'}})
 
@@ -106,8 +106,8 @@ class DumbattrTests(unittest.TestCase):
 		assert not os.path.exists(os.path.join(self.base, dumbattr.METADATA_FILENAME))
 
 	def test_symlink_attrs_are_saved_only_in_metadata(self):
-		dumbattr.setattr(self.link_target, 'kind', 'target')
-		dumbattr.setattr(self.link, 'kind', 'link')
+		dumbattr.set(self.link_target, 'kind', 'target')
+		dumbattr.set(self.link, 'kind', 'link')
 		self.assertEqual(self.serialized_metadata(), {
 			'link': {'kind': 'link'},
 			'link_target': {'kind': 'target'},
@@ -120,8 +120,8 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(dumbattr.load(self.link).copy(), {'kind':'link'})
 
 	def test_attr_removal(self):
-		dumbattr.setattr(self.file1, 'test1', '1')
-		dumbattr.setattr(self.file1, 'test2', '2')
+		dumbattr.set(self.file1, 'test1', '1')
+		dumbattr.set(self.file1, 'test2', '2')
 		dumbattr.remove(self.file1, 'test1')
 
 		self.assertEqual(dumbattr.load(self.file1).copy(), {'test2':'2'})
@@ -131,8 +131,8 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(self.serialized_metadata(), None)
 
 	def test_symlink_attr_removal(self):
-		dumbattr.setattr(self.link, 'kind', 'link')
-		dumbattr.setattr(self.link, 'test', '1')
+		dumbattr.set(self.link, 'kind', 'link')
+		dumbattr.set(self.link, 'test', '1')
 		dumbattr.remove(self.link, 'test')
 
 		self.assertEqual(self.serialized_metadata(), {
@@ -153,9 +153,9 @@ class DumbattrTests(unittest.TestCase):
 		self.assertRaises(KeyError, lambda: dumbattr.get(self.link, 'unknown'))
 
 	def test_deleting_last_attr_from_file(self):
-		dumbattr.setattr(self.file1, 'test1', '1')
-		dumbattr.setattr(self.file2, 'test2', '2')
-		dumbattr.setattr(self.link, 'test3', '3')
+		dumbattr.set(self.file1, 'test1', '1')
+		dumbattr.set(self.file2, 'test2', '2')
+		dumbattr.set(self.link, 'test3', '3')
 		dumbattr.remove(self.file1, 'test1')
 		dumbattr.remove(self.link, 'test3')
 

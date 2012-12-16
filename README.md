@@ -1,7 +1,7 @@
 dumbattr
 --------
 
-Dumbattr is a layer on top of `xattr`. As well as saving and loading xattr-based metadata, it stores the same information in a directory-level JSON file. If for some reason you lose your xattrs (via a backup roundtrip, or a copy program that doesn't respect xattrs), the next time you use `dumbattr` to load a file's metadata (for any file in that directory), it'll repopulate all missing `xattr` data as long as you've copied whole directory.
+Dumbattr is a layer on top of `xattr`. As well as saving and loading xattr-based metadata, it maintains the same information in the least clever way possible: a directory-level JSON file. If for some reason you lose your xattrs (via a backup roundtrip, or a copy program that doesn't respect xattrs), the next time you use `dumbattr` to load a file's metadata (for any file in that directory), it'll repopulate all missing `xattr` data as long as you've copied whole directory.
 
 Dumbattr only supports user-level data (i.e xattrs that start with `"user."`). You do not need to specify this in your attribute names, it is implied. That is:
 
