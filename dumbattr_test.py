@@ -78,6 +78,15 @@ class DumbattrTests(unittest.TestCase):
 			"link_target": {"target":"1"},
 		})
 
+	def test_loading_attr_ensures_all_xattrs_are_set(self):
+		dumbattr.set(self.file1, "file_1", "1")
+		xattr.remove(self.file1, "file_1", namespace=xattr.NS_USER)
+
+		self.assertEqual(self.all_xattrs(self.file1), {})
+		
+		self.assertEqual(dumbattr.load(self.file1).copy(), {'file_1':'1'})
+		self.assertEqual(self.all_xattrs(self.file1), {'file_1':'1'})
+
 	def test_xattrs_overriden_by_serialized_attrs(self):
 		dumbattr.set(self.file1, "test1", "1")
 		xattr.set(self.file1, "test1", "2", namespace=xattr.NS_USER)

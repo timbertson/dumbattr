@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import xattr
 import simplejson
@@ -22,14 +23,17 @@ def load(path):
 def set(path, name, value):
 	load(path)[name] = value
 
-def get(path, name):
-	return load(path)[name]
+def get(path, name, default=_sentinel):
+	f = load(path)
+	if default is _sentinel:
+		return f[name]
+	return f.get(name, default)
 
 def remove(path, name):
 	del load(path)[name]
 
-def get_all(path, name):
-	return load(path)[name].copy()
+def get_all(path):
+	return load(path).copy()
 
 class CachingAttributeStore(object):
 	'''
@@ -69,8 +73,11 @@ class FileMetadata(object):
 	def __setitem__(self, key, value):
 		self.dir.set_attr(self.filename, key, value)
 
+	def get(self, key, default=None):
+		return self._view.get(key, default)
+
 	def __getitem__(self, key):
-		self._view[key]
+		return self._view[key]
 
 	@classmethod
 	def from_path(cls, path):
@@ -132,13 +139,13 @@ class DirectoryMetadata(object):
 				for key, val in recovered_attrs.items():
 					xattr_val = file_attrs.get(key, None)
 					if xattr_val != val:
-						logger.debug("File %s has xattr %r=%s, but serialized data has %s - using serialized data", filename, key, xattr_val, val)
+						logger.info("File %s has xattr %r=%s, but serialized data has %s - using serialized data", filename, key, xattr_val, val)
 					xattr.set(path, key, val, namespace=xattr.NS_USER)
 			self._update_saved_attrs(filename, dest=attrs)
 
 		removed_files = Set(self._saved_attrs.keys()).difference(Set(attrs.keys()))
 		for filename in removed_files:
-			logger.info("Dropping metadata for missing file %s: %r", os.path.join(self.dirpath, filename), self._saved_attrs[filename])
+			logger.debug("Dropping metadata for missing file %s: %r", os.path.join(self.dirpath, filename), self._saved_attrs[filename])
 
 		if attrs != self._saved_attrs:
 			self._update(attrs)
@@ -150,6 +157,7 @@ class DirectoryMetadata(object):
 
 	def _set(self, filename, key, value):
 		path = os.path.join(self.dirpath, filename)
+		logger.info("Setting %s=%s (%s)", key, value, path)
 		if os.path.islink(path):
 			if value is None:
 				h = self._saved_attrs[filename]
@@ -206,3 +214,95 @@ class DirectoryMetadata(object):
 		self.save()
 
 
+def main():
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-v','--verbose', action='store_true')
+	parser.add_argument('-q','--quiet', action='store_true')
+
+	# create the top-level parser
+	subparsers = parser.add_subparsers()
+
+	def ls_action(args):
+		end = '' if args.oneline else None
+
+		paths = []
+		for p in args.paths:
+			if os.path.isdir(p) and not args.dir:
+				paths.extend([os.path.join(p, f) for f in os.listdir(p)])
+			else:
+				paths.append(p)
+
+		for p in paths:
+			print(p,end=end)
+			for pair in get_all(p).items():
+				if args.oneline:
+					print('|%s=%s' % pair, end=end)
+				else:
+					print('  %10s: %s' % pair, end)
+			if args.oneline:
+				print()
+	
+	def set_action(args):
+		for p in args.paths:
+			set(p, args.key, args.value)
+
+	def get_action(args):
+		print_path = len(args.paths) > 1
+		for p in args.paths:
+			val = get(p, args.key)
+			if print_path:
+				print("%s: %s" % (p, val))
+			else:
+				print(val)
+
+	def _do_fix(p):
+		logger.debug("Fixing: %s", p)
+		fix(p)
+
+	def fix_action(args):
+		for p in args.paths:
+			logger.info("%s path: %s", "Recursively fixing" if args.recurse else "Fixing", p)
+			if not args.recurse:
+				_do_fix(p)
+			else:
+				for root, dirs, files in os.walk(p):
+					_do_fix(root)
+	
+	# create the parser for the "ls" command
+	parser_ls = subparsers.add_parser('ls', help="print all attributes of one or more files")
+	parser_ls.add_argument('-1', action='store_true',dest='oneline', help='print results on a single line')
+	parser_ls.add_argument('-d', action='store_true',dest='dir', help='list directories, not their contents')
+	parser_ls.add_argument('paths', nargs='+')
+	parser_ls.set_defaults(func=ls_action)
+
+	# create the parser for the "set" command
+	parser_set = subparsers.add_parser('set', help="set an attribute value on one or more files")
+	parser_set.add_argument('key')
+	parser_set.add_argument('value')
+	parser_set.add_argument('paths', nargs='+')
+	parser_set.set_defaults(func=set_action)
+
+	# create the parser for the "get" command
+	parser_get = subparsers.add_parser('get', help="print the value of a specific attribute for one or more files")
+	parser_get.add_argument('key')
+	parser_get.add_argument('paths', nargs='+')
+	parser_get.set_defaults(func=get_action)
+
+	# create the parser for the "fix" command
+	parser_fix = subparsers.add_parser('fix', help="ensure xattrs match stored attribute data for one or more paths")
+	parser_fix.add_argument('-r', '--recurse', action='store_true')
+	parser_fix.add_argument('paths', nargs='+')
+	parser_fix.set_defaults(func=fix_action)
+
+	# parse the args and call whatever function was selected
+	args = parser.parse_args()
+
+	logger.setLevel(logging.ERROR if args.quiet else (logging.DEBUG if args.verbose else logging.INFO))
+
+	args.func(args)
+
+if __name__ == '__main__':
+	# just dump logging messages to stderr, with no additional formatting
+	logging.getLogger().handlers[0].setFormatter(logging.Formatter("%(message)s"))
+	main()
