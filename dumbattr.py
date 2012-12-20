@@ -5,7 +5,7 @@ import simplejson
 import logging
 import __builtin__
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 METADATA_FILENAME = '.xattr.json'
@@ -16,6 +16,22 @@ Set = __builtin__.set
 
 def fix(dirpath):
 	DirectoryMetadata(dirpath)
+
+def stored_view(dirpath):
+	'''
+	Returns a dictionary of stored metadata for the given directory,
+	without checking (or fixing) any actual file attributes.
+
+	Any changes made to this dictionary have no effect.
+	'''
+	if not os.path.isdir(dirpath):
+		raise OSError("Not a directory: %s" % (dirpath,))
+	meta_path = os.path.join(dirpath, METADATA_FILENAME)
+	if os.path.exists(meta_path):
+		logger.debug("Loading saved records for %s", dirpath)
+		with open(meta_path) as f:
+			return simplejson.load(f)
+	return {}
 
 def load(path):
 	return FileMetadata.from_path(path)
@@ -224,7 +240,7 @@ def main():
 	subparsers = parser.add_subparsers()
 
 	def ls_action(args):
-		end = '' if args.oneline else None
+		end = '' if args.oneline else '\n'
 
 		paths = []
 		for p in args.paths:

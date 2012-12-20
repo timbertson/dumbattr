@@ -175,5 +175,14 @@ class DumbattrTests(unittest.TestCase):
 
 	def test_cant_load_file_in_nonexistant_path(self):
 		self.assertRaises(OSError, lambda: dumbattr.load('/foo/bar/baz'))
+	
+	def test_stored_view_returns_empty_dict_when_no_file(self):
+		self.assertEqual(dumbattr.stored_view(self.base), {})
+
+	def test_stored_view_returns_dict_when_data_saved(self):
+		dumbattr.set(self.file1, 'test1', '1')
+		dumbattr.set(self.file2, 'test2', '2')
+		meta = dumbattr.stored_view(self.base)
+		self.assertEqual(meta, self.serialized_metadata())
 
 	#TODO: hard links?
