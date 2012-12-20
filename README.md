@@ -10,6 +10,17 @@ Dumbattr only supports user-level data (i.e xattrs that start with `"user."`). Y
 
 Will set the underlying `xattr` key `"user.attr_name"` to `"attr_value"`.
 
+Command-line tool
+-----------------
+
+As well as being a python library, `dumbattr` is a runnable program (via the [ZeroInstall feed](http://gfxmonk.net/dist/0install/python-dumbattr.xml)). It has a few sub-commands:
+
+ - ls: show the user attributes on a file or files
+ - set / get: query / modify a specific key of a file or files
+ - fix: recursively scan a location for discrepencies between xattr / JSON metadata, and update the results (by setting xattrs, updating the JSON serialization, or both). You should *definitely* run this after restoring files from a backup system that does not preserve `xattr` data, for example.
+
+Run it with `--help` for the full rundown.
+
 Caveats
 -------
 
