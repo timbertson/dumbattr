@@ -62,5 +62,9 @@ Caveats
 			<manifest-digest sha256="82266a81584e06b29129330ee075c42236f3a92641a24f4267f4158df62dfdc6"/>
 			<archive href="http://gfxmonk.net/dist/0install/python-dumbattr/python-dumbattr-0.2.tgz" size="4229"/>
 		</implementation>
+		<implementation id="sha1new=3b4cd6e0a3e9a4e9da238c37ce076a956cfb530d" released="2012-12-20" version="0.2.1">
+			<manifest-digest sha256="0a18966301ea596bba072961852a689a1e851a19bee0cac6a14722af7629e4f5"/>
+			<archive href="http://gfxmonk.net/dist/0install/python-dumbattr/python-dumbattr-0.2.1.tgz" size="4414"/>
+		</implementation>
 	</group>
 </interface>
