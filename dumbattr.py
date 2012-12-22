@@ -3,6 +3,7 @@ import os
 import xattr
 import simplejson
 import logging
+from collections import defaultdict
 import __builtin__
 
 logging.basicConfig(level=logging.INFO)
