@@ -98,7 +98,7 @@ class FileMetadata(object):
 
 	@classmethod
 	def from_path(cls, path):
-		dirname, filename = os.path.split(path)
+		dirname, filename = os.path.split(os.path.abspath(path))
 		return cls(DirectoryMetadata(dirname), filename)
 	
 	@property
