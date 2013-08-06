@@ -61,11 +61,14 @@ class CachingAttributeStore(object):
 	any file in that directory from another process (or even instance) will be ignored.
 	'''
 	def __init__(self):
-		self.dirs = defaultdict(lambda d: DirectoryMetadata(d))
+		self.dirs = {}
 	
-	def load(path):
+	def load(self, path):
 		dirname = os.path.abspath(os.path.dirname(path))
-		dirdata = self.dirs[dirname]
+		try:
+			dirdata = self.dirs[dirname]
+		except KeyError:
+			dirdata = self.dirs[dirname] = DirectoryMetadata(dirname)
 		return FileMetadata(dirdata, os.path.basename(path))
 
 class FileMetadata(object):
@@ -92,6 +95,9 @@ class FileMetadata(object):
 
 	def get(self, key, default=None):
 		return self._view.get(key, default)
+
+	def __contains__(self, key):
+		return key in self._view
 
 	def __getitem__(self, key):
 		return self._view[key]
