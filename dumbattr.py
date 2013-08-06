@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os
 import xattr
-import simplejson
+import json
 import logging
 from collections import defaultdict
 import __builtin__
@@ -31,7 +31,7 @@ def stored_view(dirpath):
 	if os.path.exists(meta_path):
 		logger.debug("Loading saved records for %s", dirpath)
 		with open(meta_path) as f:
-			return simplejson.load(f)
+			return json.load(f)
 	return {}
 
 def load(path):
@@ -135,7 +135,7 @@ class DirectoryMetadata(object):
 		if os.path.exists(self.meta_path):
 			logger.debug("Loading saved records for %s", self)
 			with open(self.meta_path) as f:
-				self._saved_attrs = simplejson.load(f)
+				self._saved_attrs = json.load(f)
 
 	def __repr__(self):
 		return "<DirectoryMetadata: %s>" % (self.dirpath,)
@@ -228,7 +228,7 @@ class DirectoryMetadata(object):
 				os.remove(self.meta_path)
 		else:
 			with open(self.meta_path, 'w') as f:
-				simplejson.dump(attrs, f, indent='  ')
+				json.dump(attrs, f, indent=2)
 		logger.debug("Saved serialized xattrs for %s", self.dirpath)
 
 	def _update(self, attrs):
