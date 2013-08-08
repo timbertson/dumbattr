@@ -4,7 +4,11 @@ import xattr
 import json
 import logging
 from collections import defaultdict
-import __builtin__
+try:
+	import builtins
+except ImportError:
+	#py2
+	import __builtin__ as builtins
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -13,7 +17,13 @@ METADATA_FILENAME = '.xattr.json'
 
 _sentinel = object
 
-Set = __builtin__.set
+Set = builtins.set
+
+UNICODE_TYPE = type(u'')
+def to_unicode(s):
+	if not isinstance(s, UNICODE_TYPE):
+		s = s.decode('utf-8')
+	return s
 
 def fix(dirpath):
 	DirectoryMetadata(dirpath)
@@ -200,7 +210,8 @@ class DirectoryMetadata(object):
 			self._update_saved_attrs(filename)
 
 	def _get_xattrs(self, filename):
-		return dict(xattr.get_all(os.path.join(self.dirpath, filename), namespace=xattr.NS_USER))
+		pairs = xattr.get_all(os.path.join(self.dirpath, filename), namespace=xattr.NS_USER)
+		return dict([list(map(to_unicode, p)) for p in pairs])
 
 	def _update_saved_attrs(self, filename, dest=None):
 		if dest is None:

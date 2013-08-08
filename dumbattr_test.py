@@ -11,7 +11,7 @@ import xattr
 
 class DumbattrTests(unittest.TestCase):
 	def setUp(self):
-		self.base = tempfile.mkdtemp("dumbattr-test")
+		self.base = tempfile.mkdtemp(prefix="dumbattr-test-", dir=os.path.dirname(__file__))
 		self.dir = P.join(self.base, "directory")
 		self.file1 = P.join(self.base, "file1")
 		self.file2 = P.join(self.base, "file2")
@@ -32,31 +32,31 @@ class DumbattrTests(unittest.TestCase):
 		return dict(xattr.get_all(path, namespace=xattr.NS_USER, **kw))
 	
 	def serialized_metadata(self, path=None):
-		import simplejson
+		import json
 		if path is None: path = self.base
 		try:
 			with open(P.join(path, dumbattr.METADATA_FILENAME)) as f:
-				d = simplejson.load(f)
+				d = json.load(f)
 		except IOError:
 			return None
 		return d
 
 	def test_adding_attr_to_previously_untouched_dir(self):
 		dumbattr.set(self.file1, "test1", "value1")
-		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1"})
+		self.assertEqual(self.all_xattrs(self.file1), {b"test1":b"value1"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1"}})
 
 	def test_adding_multiple_attrs(self):
 		dumbattr.set(self.file1, "test1", "value1")
 		dumbattr.set(self.file1, "test2", "value2")
-		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1", "test2": "value2"})
+		self.assertEqual(self.all_xattrs(self.file1), {b"test1":b"value1", b"test2": b"value2"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1", "test2": "value2"}})
 
 	def test_adding_attr_to_second_file(self):
 		dumbattr.set(self.file1, "test1", "value1")
 		dumbattr.set(self.file2, "test2", "value2")
-		self.assertEqual(self.all_xattrs(self.file1), {"test1":"value1"})
-		self.assertEqual(self.all_xattrs(self.file2), {"test2":"value2"})
+		self.assertEqual(self.all_xattrs(self.file1), {b"test1":b"value1"})
+		self.assertEqual(self.all_xattrs(self.file2), {b"test2":b"value2"})
 		self.assertEqual(self.serialized_metadata(), {"file1": {"test1":"value1"}, "file2": {"test2": "value2"}})
 
 	def test_loading_attr_ensures_all_attrs_in_dir_are_serialized(self):
@@ -69,9 +69,9 @@ class DumbattrTests(unittest.TestCase):
 
 		dumbattr.fix(self.base)
 
-		self.assertEqual(self.all_xattrs(self.file1), {"file_1":"1", "file_2": "2"})
-		self.assertEqual(self.all_xattrs(self.dir), {"dir_1":"1"})
-		self.assertEqual(self.all_xattrs(self.link_target), {"target":"1"})
+		self.assertEqual(self.all_xattrs(self.file1), {b"file_1":b"1", b"file_2": b"2"})
+		self.assertEqual(self.all_xattrs(self.dir), {b"dir_1":b"1"})
+		self.assertEqual(self.all_xattrs(self.link_target), {b"target":b"1"})
 		self.assertEqual(self.serialized_metadata(), {
 			"file1": {"file_1":"1", "file_2": "2"},
 			"directory": {"dir_1":"1"},
@@ -85,7 +85,7 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(self.all_xattrs(self.file1), {})
 		
 		self.assertEqual(dumbattr.load(self.file1).copy(), {'file_1':'1'})
-		self.assertEqual(self.all_xattrs(self.file1), {'file_1':'1'})
+		self.assertEqual(self.all_xattrs(self.file1), {b'file_1':b'1'})
 
 	def test_xattrs_overriden_by_serialized_attrs(self):
 		dumbattr.set(self.file1, "test1", "1")
@@ -94,7 +94,7 @@ class DumbattrTests(unittest.TestCase):
 		self.assertEqual(self.serialized_metadata(), {'file1': {'test1':'1'}})
 		# load() has the side effect of fixing any discrepancies, just like `fix()`
 		self.assertEqual(dumbattr.load(self.file1).copy(), {'test1': '1'})
-		self.assertEqual(self.all_xattrs(self.file1), {'test1': '1'})
+		self.assertEqual(self.all_xattrs(self.file1), {b'test1': b'1'})
 
 	def test_xattrs_with_no_serialized_value_are_kept(self):
 		dumbattr.set(self.file1, "test1", "1")
@@ -122,7 +122,7 @@ class DumbattrTests(unittest.TestCase):
 			'link_target': {'kind': 'target'},
 		})
 
-		self.assertEqual(self.all_xattrs(self.link_target, nofollow=True), {'kind':'target'})
+		self.assertEqual(self.all_xattrs(self.link_target, nofollow=True), {b'kind':b'target'})
 		self.assertEqual(self.all_xattrs(self.link,        nofollow=True), {})
 
 		self.assertEqual(dumbattr.load(self.link_target).copy(), {'kind':'target'})
